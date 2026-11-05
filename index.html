@@ -1,0 +1,524 @@
+<title>Çıtır Kahvaltı Sipariş</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Nunito:wght@400;600;700;800&display=swap">
+<style>
+/* Düzen: kahvaltı sofrası — sarı yumurta güneşi, domates kırmızısı, taze yeşil; solda menü, sağda sepet fişi */
+:root{
+  --bg:#FFF8E6; --surface:#FFFFFF; --ink:#2B1A10; --muted:#7A5F4C; --line:#F0DFC0;
+  --yolk:#FFB800; --tomato:#E8432E; --pepper:#2E9E5B; --crust:#C8741E; --soft:#FFEFC2; --chip:#FFF3D6;
+  --ok:#2E9E5B; --warn:#E89B00; --crit:#E8432E;
+  --display:"Bricolage Grotesque", "Trebuchet MS", sans-serif;
+  --body:"Nunito", "Segoe UI", system-ui, sans-serif;
+  --r:18px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#1C140E; --surface:#2A1E15; --ink:#FFF3E0; --muted:#C9AE95; --line:#43321F;
+  --yolk:#FFC633; --tomato:#FF6A55; --pepper:#4CC27E; --crust:#E3954A; --soft:#3A2A15; --chip:#33251A; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#1C140E; --surface:#2A1E15; --ink:#FFF3E0; --muted:#C9AE95; --line:#43321F;
+  --yolk:#FFC633; --tomato:#FF6A55; --pepper:#4CC27E; --crust:#E3954A; --soft:#3A2A15; --chip:#33251A; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.5}
+.wrap{max-width:1180px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1,h2,h3{font-family:var(--display);line-height:1.1;text-wrap:balance;margin:0}
+button{font:inherit;cursor:pointer}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,a:focus-visible{outline:3px solid var(--yolk);outline-offset:2px}
+
+/* üst bant */
+.demo{background:var(--ink);color:var(--bg);font-size:13px;font-weight:700}
+.demo .wrap{display:flex;gap:10px;align-items:center;justify-content:center;padding-block:7px;flex-wrap:wrap;text-align:center}
+.demo b{background:var(--yolk);color:#2B1A10;padding:1px 8px;border-radius:99px;letter-spacing:.06em}
+header{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--bg);border-bottom:2px dashed var(--line)}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:30;background:var(--bg)}
+header .wrap{display:flex;align-items:center;gap:14px;padding-block:12px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:10px;margin-right:auto}
+.brand h1{font-size:26px;font-weight:800;letter-spacing:-.02em}
+.brand h1 span{color:var(--tomato)}
+.brand small{display:block;font-family:var(--body);font-size:12px;color:var(--muted);font-weight:700;letter-spacing:.08em;text-transform:uppercase}
+.seg{display:flex;background:var(--chip);border-radius:99px;padding:4px;gap:4px;border:1px solid var(--line)}
+.seg button{border:0;background:transparent;color:var(--ink);padding:8px 16px;border-radius:99px;font-weight:800}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.cartbtn{border:0;background:var(--tomato);color:#fff;font-weight:800;padding:10px 16px;border-radius:99px;display:flex;gap:8px;align-items:center}
+.cartbtn .n{background:#fff;color:var(--tomato);border-radius:99px;min-width:22px;text-align:center;font-size:13px}
+
+/* hero */
+.hero{display:grid;grid-template-columns:1.3fr 1fr;gap:24px;align-items:center;padding-block:28px 12px}
+.hero h2{font-size:clamp(34px,5vw,56px);font-weight:800;letter-spacing:-.03em}
+.hero h2 em{font-style:normal;color:var(--tomato);position:relative;white-space:nowrap}
+.hero h2 em::after{content:"";position:absolute;left:0;right:0;bottom:2px;height:12px;background:var(--yolk);opacity:.45;z-index:-1;border-radius:6px}
+.hero p{color:var(--muted);font-size:17px;max-width:52ch;margin:12px 0 0}
+.perks{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+.perk{background:var(--surface);border:1px solid var(--line);border-radius:99px;padding:6px 12px;font-weight:700;font-size:13px}
+.perk i{font-style:normal;color:var(--pepper)}
+.sun{position:relative;aspect-ratio:1;max-width:340px;width:100%;justify-self:center}
+.sun svg{width:100%;height:100%}
+@media (prefers-reduced-motion:no-preference){.sun .rays{animation:spin 30s linear infinite;transform-origin:50% 50%}.steam path{animation:steam 3s ease-in-out infinite}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes steam{0%,100%{opacity:.25;transform:translateY(4px)}50%{opacity:.8;transform:translateY(-4px)}}
+
+/* şube seçimi */
+.branches{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-block:18px}
+.branch{display:flex;gap:12px;align-items:flex-start;text-align:left;background:var(--surface);border:2px solid var(--line);border-radius:var(--r);padding:14px;color:var(--ink)}
+.branch[aria-pressed="true"]{border-color:var(--tomato);background:var(--chip)}
+.branch .dot{width:18px;height:18px;border-radius:50%;border:3px solid var(--line);flex:none;margin-top:3px}
+.branch[aria-pressed="true"] .dot{border-color:var(--tomato);background:var(--tomato);box-shadow:inset 0 0 0 3px var(--surface)}
+.branch b{font-family:var(--display);font-size:17px}
+.branch span{display:block;color:var(--muted);font-size:13px}
+.open{font-size:12px;font-weight:800;color:var(--pepper)}
+
+/* layout */
+.shop{display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:24px;align-items:start;padding-bottom:60px}
+.shop>*{min-width:0}
+.cats{display:flex;gap:8px;overflow-x:auto;padding:4px 2px 12px;scrollbar-width:none;position:sticky;top:calc(env(safe-area-inset-top,0px) + var(--hh,70px));background:var(--bg);z-index:5}
+.cat{flex:none;border:2px solid var(--line);background:var(--surface);color:var(--ink);border-radius:99px;padding:8px 14px;font-weight:800;font-size:14px}
+.cat[aria-pressed="true"]{background:var(--yolk);border-color:var(--yolk);color:#2B1A10}
+.sec h3{font-size:24px;font-weight:800;margin:18px 0 10px;display:flex;gap:10px;align-items:baseline}
+.sec h3 small{font-family:var(--body);font-size:13px;color:var(--muted);font-weight:700}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(230px,100%),1fr));gap:14px}
+.card{background:var(--surface);border-radius:var(--r);border:1px solid var(--line);overflow:hidden;display:flex;flex-direction:column}
+.pic{height:120px;display:grid;place-items:center;position:relative}
+.pic svg{height:88px;width:auto}
+.tag{position:absolute;top:10px;left:10px;background:var(--tomato);color:#fff;font-size:11px;font-weight:800;padding:3px 9px;border-radius:99px;letter-spacing:.04em}
+.tag.g{background:var(--pepper)}
+.body{padding:12px 14px 14px;display:flex;flex-direction:column;gap:6px;flex:1}
+.body b{font-family:var(--display);font-size:18px;line-height:1.15}
+.body p{margin:0;color:var(--muted);font-size:13px;flex:1}
+.row{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:4px}
+.price{font-family:var(--display);font-weight:800;font-size:20px;font-variant-numeric:tabular-nums}
+.add{border:0;background:var(--ink);color:var(--bg);font-weight:800;border-radius:99px;padding:8px 14px}
+.add:hover{background:var(--tomato);color:#fff}
+.out .pic{filter:grayscale(1);opacity:.5}
+.out .add{background:var(--line);color:var(--muted);cursor:not-allowed}
+.qty{display:flex;align-items:center;gap:6px;background:var(--chip);border-radius:99px;padding:3px}
+.qty button{border:0;width:30px;height:30px;border-radius:50%;background:var(--surface);color:var(--ink);font-weight:800;font-size:16px}
+.qty span{min-width:20px;text-align:center;font-weight:800;font-variant-numeric:tabular-nums}
+
+/* sepet fişi */
+.cart{position:sticky;top:calc(env(safe-area-inset-top,0px) + 80px);background:var(--surface);border-radius:var(--r);border:1px solid var(--line);box-shadow:0 14px 40px -24px rgba(80,40,0,.45)}
+.cart .top{background:var(--yolk);color:#2B1A10;padding:14px 18px;border-radius:var(--r) var(--r) 0 0}
+.cart .top h3{font-size:22px}
+.cart .top small{font-weight:700;font-size:13px}
+.cart .in{padding:14px 18px 18px;display:flex;flex-direction:column;gap:12px}
+.zig{height:10px;background:linear-gradient(-45deg,transparent 7px,var(--surface) 0) 0 0/14px 10px,linear-gradient(45deg,transparent 7px,var(--surface) 0) 0 0/14px 10px;background-color:var(--yolk)}
+.line{display:flex;justify-content:space-between;gap:8px;align-items:center;font-size:14px}
+.line .nm{min-width:0;flex:1}
+.line .nm b{display:block;font-weight:800}
+.empty{color:var(--muted);text-align:center;padding:18px 6px;font-size:14px}
+.tot{border-top:2px dashed var(--line);padding-top:10px;display:flex;flex-direction:column;gap:4px;font-variant-numeric:tabular-nums}
+.tot .line:last-child{font-family:var(--display);font-weight:800;font-size:22px}
+.mode{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.mode button{border:2px solid var(--line);background:var(--surface);color:var(--ink);border-radius:12px;padding:8px;font-weight:800;font-size:14px}
+.mode button[aria-pressed="true"]{border-color:var(--pepper);background:var(--chip);color:var(--pepper)}
+label{font-size:12px;font-weight:800;color:var(--muted);letter-spacing:.05em;text-transform:uppercase;display:flex;flex-direction:column;gap:4px}
+input,select,textarea{font:inherit;font-size:15px;text-transform:none;letter-spacing:0;color:var(--ink);background:var(--bg);border:2px solid var(--line);border-radius:12px;padding:9px 11px;width:100%;font-weight:600}
+textarea{resize:vertical;min-height:52px}
+.wa{display:flex;align-items:center;justify-content:center;gap:10px;background:#1FA855;color:#fff;border:0;border-radius:14px;padding:14px;font-weight:800;font-size:16px;text-decoration:none}
+.wa[aria-disabled="true"]{opacity:.45;pointer-events:none}
+.hint{font-size:12px;color:var(--muted);text-align:center;margin:0}
+.err{color:var(--crit);font-size:13px;font-weight:700;margin:0}
+.phone{display:flex;gap:8px;align-items:center;justify-content:center;font-weight:800;flex-wrap:wrap}
+.phone code{font-family:var(--display);font-size:18px;background:var(--chip);padding:2px 10px;border-radius:8px;user-select:all}
+.copy{border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:99px;padding:4px 10px;font-size:12px;font-weight:800}
+
+/* panel */
+.panel{padding-block:24px 60px;display:flex;flex-direction:column;gap:22px}
+.phead{display:flex;justify-content:space-between;align-items:end;gap:12px;flex-wrap:wrap}
+.phead h2{font-size:34px;font-weight:800}
+.phead p{margin:4px 0 0;color:var(--muted)}
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px}
+.stat small{font-size:12px;font-weight:800;color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
+.stat b{display:block;font-family:var(--display);font-size:30px;font-weight:800;font-variant-numeric:tabular-nums}
+.stat.hot{background:var(--yolk);border-color:var(--yolk);color:#2B1A10}
+.stat.hot small{color:#5a3a10}
+.cols{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:18px;align-items:start}
+.box{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px}
+.box h3{font-size:20px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.filters{display:flex;gap:6px;flex-wrap:wrap}
+.filters button{border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:99px;padding:4px 10px;font-size:12px;font-weight:800}
+.filters button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.order{border:1px solid var(--line);border-left:6px solid var(--st,var(--line));border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:6px;margin-bottom:10px;background:var(--bg)}
+.order .h{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:center}
+.order .h b{font-family:var(--display);font-size:17px}
+.pill{font-size:12px;font-weight:800;padding:3px 10px;border-radius:99px;color:#fff;background:var(--st)}
+.order .meta{font-size:13px;color:var(--muted)}
+.order .items{font-size:14px}
+.order .act{display:flex;gap:6px;flex-wrap:wrap}
+.order .act button{border:0;border-radius:99px;padding:6px 12px;font-weight:800;font-size:13px;background:var(--ink);color:var(--bg)}
+.order .act button.ghost{background:var(--surface);color:var(--ink);border:1px solid var(--line)}
+.ex{font-size:10px;font-weight:800;background:var(--line);color:var(--muted);padding:1px 6px;border-radius:6px;letter-spacing:.05em}
+.mrow{display:grid;grid-template-columns:minmax(0,1fr) 90px auto;gap:8px;align-items:center;padding:8px 0;border-bottom:1px dashed var(--line);font-size:14px}
+.mrow input{padding:6px 8px;text-align:right;font-variant-numeric:tabular-nums}
+.sw{border:0;border-radius:99px;padding:5px 10px;font-size:12px;font-weight:800;color:#fff;background:var(--ok);min-width:74px}
+.sw.off{background:var(--crit)}
+.calc{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.save{background:var(--chip);border-radius:14px;padding:14px;margin-top:12px}
+.save small{display:block}
+.save b{font-family:var(--display);font-size:28px;color:var(--pepper);font-variant-numeric:tabular-nums}
+.save p{margin:4px 0 0;font-size:13px;color:var(--muted)}
+.feat{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.feat div{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px}
+.feat b{font-family:var(--display);font-size:17px;display:block;margin-bottom:2px}
+.feat p{margin:0;font-size:13px;color:var(--muted)}
+footer{border-top:2px dashed var(--line);color:var(--muted);font-size:13px}
+footer .wrap{padding-block:18px;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 18px;border-radius:99px;font-weight:800;z-index:50;box-shadow:0 10px 30px -10px rgba(0,0,0,.5)}
+.mbar{display:none}
+
+@media (max-width:900px){
+  .shop{grid-template-columns:1fr}
+  .cart{position:static}
+  .cols{grid-template-columns:1fr}
+  .stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .feat{grid-template-columns:1fr}
+  .mbar{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:40;padding:10px max(16px,env(safe-area-inset-right,0px)) calc(10px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));background:var(--ink);color:var(--bg);justify-content:space-between;align-items:center;font-weight:800}
+  .mbar button{border:0;background:var(--yolk);color:#2B1A10;border-radius:99px;padding:10px 16px;font-weight:800}
+  .shop{padding-bottom:90px}
+}
+@media (max-width:640px){
+  .grid{grid-template-columns:1fr 1fr;gap:10px}
+  .body b{font-size:16px}
+  .row{flex-wrap:wrap}
+  .hero{grid-template-columns:1fr}
+  .sun{max-width:200px;order:-1}
+  .branches{grid-template-columns:1fr}
+  .cartbtn{display:none}
+  .brand h1{font-size:22px}
+}
+</style>
+
+<div class="demo"><div class="wrap"><b>DEMO</b> Bu sayfa Çıtır Kahvaltı için hazırlanmış örnek sipariş sistemidir. Fiyatlar örnektir.</div></div>
+
+<header>
+  <div class="wrap">
+    <div class="brand">
+      <svg width="44" height="44" viewBox="0 0 44 44" aria-hidden="true"><circle cx="22" cy="22" r="21" fill="var(--tomato)"/><ellipse cx="22" cy="23" rx="15" ry="13" fill="#fff"/><circle cx="22" cy="23" r="7" fill="var(--yolk)"/><circle cx="19.5" cy="20.5" r="2" fill="#fff" opacity=".7"/></svg>
+      <div><h1>Çıtır <span>Kahvaltı</span></h1><small>Zeytinburnu · 2 Şube</small></div>
+    </div>
+    <div class="seg" role="group" aria-label="Görünüm">
+      <button id="vMusteri" aria-pressed="true">Müşteri</button>
+      <button id="vPanel" aria-pressed="false">İşletme Paneli</button>
+    </div>
+    <button class="cartbtn" id="topCart" aria-label="Sepete git">Sepet <span class="n" id="cartN">0</span></button>
+  </div>
+</header>
+
+<main id="customer">
+  <div class="wrap">
+    <section class="hero">
+      <div>
+        <h2>Sıcak kahvaltı, <em>kapınızda.</em></h2>
+        <p>Menemenden serpme kahvaltıya, çıtır tosttan taze simide. Seçin, sepete ekleyin, siparişiniz tek dokunuşla WhatsApp'tan doğrudan şubemize gelsin.</p>
+        <div class="perks">
+          <span class="perk"><i>●</i> Aracı uygulama yok</span>
+          <span class="perk"><i>●</i> Doğrudan şubeden</span>
+          <span class="perk"><i>●</i> Kapıda nakit / kart</span>
+          <span class="perk"><i>●</i> Gel-al seçeneği</span>
+        </div>
+      </div>
+      <div class="sun" aria-hidden="true">
+        <svg viewBox="0 0 300 300">
+          <g class="rays">
+            <g fill="var(--yolk)" opacity=".35">
+              <path d="M150 0 L162 60 L138 60Z"/><path d="M150 300 L162 240 L138 240Z"/><path d="M0 150 L60 138 L60 162Z"/><path d="M300 150 L240 138 L240 162Z"/>
+              <path d="M44 44 L92 80 L80 92Z"/><path d="M256 256 L208 220 L220 208Z"/><path d="M256 44 L220 92 L208 80Z"/><path d="M44 256 L80 208 L92 220Z"/>
+            </g>
+          </g>
+          <circle cx="150" cy="165" r="92" fill="#3A3A3A"/>
+          <circle cx="150" cy="165" r="80" fill="#4a4a4a"/>
+          <rect x="236" y="155" width="60" height="18" rx="9" fill="#3A3A3A"/>
+          <path d="M95 170 Q110 120 150 125 Q200 118 210 165 Q205 215 150 215 Q100 220 95 170Z" fill="var(--tomato)"/>
+          <ellipse cx="150" cy="168" rx="50" ry="38" fill="#fff"/>
+          <circle cx="135" cy="160" r="17" fill="var(--yolk)"/>
+          <circle cx="168" cy="178" r="15" fill="var(--yolk)"/>
+          <circle cx="129" cy="154" r="5" fill="#fff" opacity=".6"/>
+          <g fill="var(--pepper)"><rect x="112" y="190" width="18" height="7" rx="3.5" transform="rotate(-20 121 193)"/><rect x="180" y="140" width="16" height="7" rx="3.5" transform="rotate(25 188 143)"/><rect x="186" y="196" width="14" height="6" rx="3" transform="rotate(-10 193 199)"/></g>
+          <g class="steam" stroke="var(--crust)" stroke-width="5" fill="none" stroke-linecap="round" opacity=".6">
+            <path d="M125 60 q-10 15 0 30"/><path d="M152 50 q-10 15 0 30" style="animation-delay:.6s"/><path d="M178 60 q-10 15 0 30" style="animation-delay:1.2s"/>
+          </g>
+        </svg>
+      </div>
+    </section>
+
+    <div class="branches" id="branches"></div>
+
+    <div class="shop">
+      <div>
+        <nav class="cats" id="cats" aria-label="Kategoriler"></nav>
+        <div id="menu"></div>
+      </div>
+      <aside class="cart" id="cart" aria-label="Sepetiniz">
+        <div class="top"><h3>Sepetiniz</h3><small id="cartBranch"></small></div>
+        <div class="zig"></div>
+        <div class="in">
+          <div id="lines"></div>
+          <div class="tot" id="tot"></div>
+          <div class="mode" role="group" aria-label="Teslimat">
+            <button id="mDel" aria-pressed="true">Adrese Teslim</button>
+            <button id="mPick" aria-pressed="false">Gel-Al</button>
+          </div>
+          <label for="fName">Ad Soyad<input id="fName" autocomplete="name" placeholder="Örn. Ayşe Yılmaz"></label>
+          <label for="fPhone">Telefon<input id="fPhone" inputmode="tel" autocomplete="tel" placeholder="05xx xxx xx xx"></label>
+          <label for="fAddr" id="addrWrap">Adres<textarea id="fAddr" placeholder="Mahalle, sokak, bina no, daire, tarif"></textarea></label>
+          <label for="fPay">Ödeme<select id="fPay"><option>Kapıda nakit</option><option>Kapıda kredi kartı</option></select></label>
+          <label for="fNote">Sipariş notu<input id="fNote" placeholder="Örn. menemen soğanlı olsun, çatal istemiyorum"></label>
+          <p class="err" id="err" hidden></p>
+          <a class="wa" id="waBtn" href="#" target="_blank" rel="noopener" aria-disabled="true">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="#fff" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2c-1.5 0-3-.4-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.2-.4.2-.4.7-1.2.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2c0 1.3.9 2.5 1 2.7.1.2 1.8 2.8 4.4 3.9 1.6.7 2.3.8 3.1.6.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.2-1.2-.1-.1-.2-.2-.5-.3Z"/></svg>
+            WhatsApp'tan Sipariş Ver
+          </a>
+          <p class="hint">Butona basınca siparişiniz hazır mesaj olarak WhatsApp'ta açılır, siz gönderirsiniz.</p>
+          <div class="phone">Sipariş hattı: <code id="telTxt">0530 678 80 89</code><button class="copy" id="copyTel">Kopyala</button></div>
+        </div>
+      </aside>
+    </div>
+  </div>
+</main>
+
+<main id="panel" hidden>
+  <div class="wrap panel">
+    <div class="phead">
+      <div><h2>Günaydın, Tuğba Hanım</h2><p>Bugünkü siparişler, menü ve kazanç tek ekranda. <span class="ex">ÖRNEK</span> etiketli kayıtlar demodur.</p></div>
+      <label for="pBranch" style="min-width:220px">Şube<select id="pBranch"></select></label>
+    </div>
+    <div class="stats" id="stats"></div>
+    <div class="cols">
+      <div class="box">
+        <h3>Gelen Siparişler
+          <span class="filters" id="filt"></span>
+        </h3>
+        <div id="orders"></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:18px;min-width:0">
+        <div class="box">
+          <h3>Komisyon Hesabı</h3>
+          <div class="calc">
+            <label for="cOrders">Aylık sipariş<input id="cOrders" type="number" min="0" value="600"></label>
+            <label for="cAvg">Ort. sepet (₺)<input id="cAvg" type="number" min="0" value="320"></label>
+            <label for="cRate" style="grid-column:1/-1">Platformun aldığı komisyon (%)<input id="cRate" type="number" min="0" max="60" value="20"></label>
+          </div>
+          <div class="save"><small style="font-weight:800;color:var(--muted);font-size:12px;letter-spacing:.06em">KENDİ SİSTEMİNİZLE CEBİNİZDE KALAN</small><b id="cOut">₺0</b><p>Aylık tahmini tutar. Komisyon oranını anlaşmanızdaki gerçek değerle değiştirin.</p></div>
+        </div>
+        <div class="box">
+          <h3>Menü Yönetimi</h3>
+          <div id="mlist" style="max-height:520px;overflow:auto"></div>
+        </div>
+      </div>
+    </div>
+    <div class="feat">
+      <div><b>Müşteriniz doğrudan size yazar</b><p>Sipariş WhatsApp'ınıza hazır fiş olarak düşer: ürünler, adet, adres, ödeme şekli, not.</p></div>
+      <div><b>Tükenen ürünü tek dokunuşla kapatın</b><p>Menüde "Tükendi" dediğiniz ürün müşteri ekranında satışa kapanır, fiyatı buradan güncellersiniz.</p></div>
+      <div><b>İki şube, tek sistem</b><p>Müşteri şubesini seçer, sipariş o şubenin hattına gider. Bağlantıyı Instagram ve Google profilinize koyabilirsiniz.</p></div>
+    </div>
+  </div>
+</main>
+
+<div class="mbar" id="mbar"><span id="mbarTxt">Sepet boş</span><button id="mbarGo">Sepete Git</button></div>
+<div class="toast" id="toast" hidden></div>
+
+<footer><div class="wrap"><span>Çıtır Kahvaltı · Depo Şubesi: Yenidoğan Mah. 50/1 Sok. (Ekin Simit Sarayı karşı sokağı), Zeytinburnu</span><span>Demo · Barış Öğretmen tarafından hazırlandı</span></div></footer>
+
+<script>
+(function(){
+const PHONE="905306788089";
+const BRANCHES=[
+  {id:"depo",name:"Depo Şubesi",addr:"Yenidoğan Mah. 50/1 Sok. (Ekin Simit Sarayı karşı sokağı), Zeytinburnu",hours:"Her gün 07:00 – 15:00",phone:PHONE},
+  {id:"sube2",name:"2. Şube",addr:"Zeytinburnu (adres eklenecek)",hours:"Her gün 07:00 – 15:00",phone:PHONE}
+];
+const CATS=[
+  {id:"kahvalti",name:"Kahvaltılar",sub:"Tabak ve serpme"},
+  {id:"tava",name:"Tava & Menemen",sub:"Sıcak sıcak"},
+  {id:"sandvic",name:"Sandviç & Tost",sub:"Çıtır ekmekte"},
+  {id:"firin",name:"Simit & Fırın",sub:"Günlük taze"},
+  {id:"icecek",name:"İçecekler",sub:"Çay da var"}
+];
+const DEF=[
+  {id:1,c:"kahvalti",n:"Serpme Kahvaltı (2 Kişilik)",d:"Beyaz peynir, kaşar, zeytin, bal-kaymak, reçel, domates, salatalık, sigara böreği, sınırsız çay",p:650,tag:"ÇOK SATAN",art:"plate"},
+  {id:2,c:"kahvalti",n:"Kahvaltı Tabağı",d:"Peynir çeşitleri, zeytin, domates-salatalık, haşlanmış yumurta, bal, tereyağı, 1 simit",p:240,art:"plate"},
+  {id:3,c:"kahvalti",n:"Çocuk Kahvaltı Tabağı",d:"Üçgen peynir, kaşar, bal, mini sosis, haşlanmış yumurta, salatalık",p:170,art:"plate"},
+  {id:4,c:"tava",n:"Menemen",d:"Domates, biber, köy yumurtası; soğanlı ya da soğansız",p:150,tag:"FAVORİ",art:"pan"},
+  {id:5,c:"tava",n:"Kaşarlı Menemen",d:"Bol kaşarlı, ekmekle",p:175,art:"pan"},
+  {id:6,c:"tava",n:"Sucuklu Yumurta",d:"Tereyağında kasap sucuk, iki yumurta",p:185,art:"pan"},
+  {id:7,c:"tava",n:"Kavurmalı Yumurta",d:"Dana kavurma, iki yumurta",p:230,art:"pan"},
+  {id:8,c:"sandvic",n:"Kaşarlı Tost",d:"Bazlama ya da tost ekmeğinde bol kaşar",p:110,art:"toast"},
+  {id:9,c:"sandvic",n:"Karışık Tost",d:"Sucuk, kaşar, domates",p:140,art:"toast"},
+  {id:10,c:"sandvic",n:"Çıtır Sandviç",d:"Taze baget, beyaz peynir, domates, salatalık, yeşillik",p:120,tag:"YENİ",tg:1,art:"sandwich"},
+  {id:11,c:"sandvic",n:"Hindi Füme Sandviç",d:"Hindi füme, kaşar, marul, özel sos",p:155,art:"sandwich"},
+  {id:12,c:"firin",n:"Simit",d:"Günlük taze, susamlı",p:20,art:"simit"},
+  {id:13,c:"firin",n:"Peynirli Poğaça",d:"Yumuşacık, ev usulü",p:25,art:"pogaca"},
+  {id:14,c:"firin",n:"Sigara Böreği (5 adet)",d:"Çıtır çıtır, peynirli",p:90,art:"pogaca"},
+  {id:15,c:"icecek",n:"Çay",d:"Demlik çay, ince belli bardak",p:15,art:"tea"},
+  {id:16,c:"icecek",n:"Türk Kahvesi",d:"Lokumla",p:60,art:"tea"},
+  {id:17,c:"icecek",n:"Taze Portakal Suyu",d:"Sıkma, 300 ml",p:80,art:"juice"},
+  {id:18,c:"icecek",n:"Ayran",d:"300 ml",p:30,art:"juice"}
+];
+const ARTBG={plate:"#FFE9A8",pan:"#FFD2C8",toast:"#FFE0B5",sandwich:"#DDF3D2",simit:"#F7DDB8",pogaca:"#FFEBC4",tea:"#F6D3C2",juice:"#FFE6A0"};
+const ART={
+plate:'<svg viewBox="0 0 120 90"><ellipse cx="60" cy="50" rx="52" ry="34" fill="#fff" stroke="#E7D3B0" stroke-width="3"/><ellipse cx="60" cy="50" rx="38" ry="24" fill="#FFF8EC"/><rect x="32" y="36" width="22" height="14" rx="3" fill="#FFFBF2" stroke="#E8DCC6"/><rect x="58" y="34" width="20" height="13" rx="2" fill="#FFD25A"/><circle cx="44" cy="62" r="7" fill="#E8432E"/><circle cx="44" cy="62" r="3" fill="#FF8A75"/><circle cx="82" cy="58" r="5" fill="#3A2A20"/><circle cx="74" cy="64" r="5" fill="#3A2A20"/><circle cx="88" cy="46" r="5" fill="#6B8E23"/><circle cx="62" cy="62" r="6" fill="#B5E08F"/></svg>',
+pan:'<svg viewBox="0 0 120 90"><rect x="92" y="40" width="28" height="9" rx="4.5" fill="#3A3A3A"/><circle cx="55" cy="45" r="40" fill="#3A3A3A"/><circle cx="55" cy="45" r="33" fill="#E8432E"/><ellipse cx="55" cy="46" rx="22" ry="17" fill="#fff"/><circle cx="48" cy="42" r="8" fill="#FFB800"/><circle cx="63" cy="51" r="7" fill="#FFB800"/><rect x="30" y="58" width="10" height="4" rx="2" fill="#2E9E5B" transform="rotate(-20 35 60)"/><rect x="70" y="28" width="9" height="4" rx="2" fill="#2E9E5B"/></svg>',
+toast:'<svg viewBox="0 0 120 90"><path d="M20 70 L60 18 L100 70Z" fill="#D9883A"/><path d="M28 66 L60 26 L92 66Z" fill="#F2B964"/><path d="M34 56 Q60 46 86 56 L84 62 Q60 54 36 62Z" fill="#FFD25A"/><g stroke="#9B5A1A" stroke-width="3" opacity=".6"><line x1="44" y1="50" x2="54" y2="40"/><line x1="58" y1="50" x2="68" y2="40"/></g></svg>',
+sandwich:'<svg viewBox="0 0 120 90"><ellipse cx="60" cy="34" rx="48" ry="16" fill="#E0A55A"/><rect x="14" y="40" width="92" height="8" rx="4" fill="#7BC46A"/><rect x="16" y="46" width="88" height="7" rx="3" fill="#E8432E"/><rect x="16" y="52" width="88" height="7" rx="3" fill="#FFFBF2"/><ellipse cx="60" cy="64" rx="48" ry="12" fill="#D08C3E"/><g fill="#fff" opacity=".7"><circle cx="40" cy="28" r="2"/><circle cx="60" cy="25" r="2"/><circle cx="80" cy="29" r="2"/></g></svg>',
+simit:'<svg viewBox="0 0 120 90"><circle cx="60" cy="45" r="36" fill="#B8642A"/><circle cx="60" cy="45" r="16" fill="'+'var(--bgx)'+'"/><g fill="#FFE9C0"><circle cx="40" cy="30" r="2"/><circle cx="50" cy="20" r="2"/><circle cx="70" cy="18" r="2"/><circle cx="84" cy="32" r="2"/><circle cx="88" cy="50" r="2"/><circle cx="76" cy="70" r="2"/><circle cx="56" cy="74" r="2"/><circle cx="36" cy="62" r="2"/><circle cx="30" cy="46" r="2"/><circle cx="64" cy="26" r="1.6"/><circle cx="80" cy="60" r="1.6"/></g></svg>',
+pogaca:'<svg viewBox="0 0 120 90"><ellipse cx="42" cy="54" rx="26" ry="20" fill="#E8A54A"/><ellipse cx="42" cy="50" rx="22" ry="14" fill="#F4C26B"/><ellipse cx="80" cy="56" rx="24" ry="18" fill="#E8A54A"/><ellipse cx="80" cy="52" rx="20" ry="12" fill="#F4C26B"/><g fill="#3A2A20"><circle cx="38" cy="46" r="1.5"/><circle cx="46" cy="44" r="1.5"/><circle cx="78" cy="48" r="1.5"/><circle cx="86" cy="50" r="1.5"/></g></svg>',
+tea:'<svg viewBox="0 0 120 90"><ellipse cx="60" cy="80" rx="30" ry="6" fill="#C9C9C9"/><path d="M44 18 H76 Q72 34 68 46 Q76 60 72 78 H48 Q44 60 52 46 Q48 34 44 18Z" fill="#FFF" opacity=".55" stroke="#B9B9B9" stroke-width="2"/><path d="M47 26 H73 Q70 36 66 46 Q73 60 70 75 H50 Q47 60 54 46 Q50 36 47 26Z" fill="#B8331C"/><g stroke="#C8741E" stroke-width="3" fill="none" stroke-linecap="round" opacity=".6"><path d="M54 12 q-5 -6 0 -10"/><path d="M66 12 q-5 -6 0 -10"/></g></svg>',
+juice:'<svg viewBox="0 0 120 90"><path d="M42 14 H78 L72 82 H48Z" fill="#fff" opacity=".6" stroke="#C9C9C9" stroke-width="2"/><path d="M45 28 H75 L70 78 H50Z" fill="#FFA41B"/><circle cx="82" cy="20" r="13" fill="#FF9A1F"/><circle cx="82" cy="20" r="9" fill="#FFC45C"/><rect x="62" y="4" width="4" height="40" rx="2" fill="#E8432E" transform="rotate(12 64 24)"/></svg>'
+};
+const STATUS=[
+  {id:"yeni",name:"Yeni",c:"var(--tomato)"},
+  {id:"haz",name:"Hazırlanıyor",c:"var(--warn)"},
+  {id:"yol",name:"Yolda",c:"#3B7DD8"},
+  {id:"tes",name:"Teslim Edildi",c:"var(--ok)"}
+];
+const store={get(k,d){try{const v=localStorage.getItem("citir_"+k);return v?JSON.parse(v):d}catch(e){return d}},set(k,v){try{localStorage.setItem("citir_"+k,JSON.stringify(v))}catch(e){}}};
+let menu=store.get("menu",null)||DEF.map(x=>({...x,on:true}));
+let cart=store.get("cart",{});
+let branch=store.get("branch","depo");
+let mode="del", cat="kahvalti", filt="hepsi";
+const now=Date.now();
+let orders=store.get("orders",null)||[
+  {no:1042,b:"depo",t:now-6*60e3,name:"Ayşe K.",items:[[1,1],[15,4]],mode:"del",pay:"Kapıda kredi kartı",addr:"Yenidoğan Mah. 48. Sok.",st:"yeni",ex:1},
+  {no:1041,b:"depo",t:now-18*60e3,name:"Mehmet D.",items:[[4,2],[12,3],[15,2]],mode:"del",pay:"Kapıda nakit",addr:"Telsiz Mah.",st:"haz",ex:1},
+  {no:1040,b:"depo",t:now-35*60e3,name:"Zeynep A.",items:[[9,2],[17,2]],mode:"pick",pay:"Kapıda nakit",addr:"",st:"yol",ex:1},
+  {no:1039,b:"sube2",t:now-52*60e3,name:"Hasan Y.",items:[[2,2],[6,1],[16,2]],mode:"del",pay:"Kapıda kredi kartı",addr:"Sümer Mah.",st:"tes",ex:1},
+  {no:1038,b:"depo",t:now-75*60e3,name:"Elif S.",items:[[10,3],[18,3]],mode:"del",pay:"Kapıda nakit",addr:"Yenidoğan Mah.",st:"tes",ex:1}
+];
+const $=s=>document.querySelector(s);
+const TL=n=>"₺"+Math.round(n).toLocaleString("tr-TR");
+const byId=id=>menu.find(m=>m.id===id);
+const save=()=>{store.set("menu",menu);store.set("cart",cart);store.set("branch",branch);store.set("orders",orders)};
+function toast(t){const el=$("#toast");el.textContent=t;el.hidden=false;clearTimeout(toast.h);toast.h=setTimeout(()=>el.hidden=true,2200)}
+
+function renderBranches(){
+  $("#branches").innerHTML=BRANCHES.map(b=>`<button class="branch" data-b="${b.id}" aria-pressed="${b.id===branch}"><span class="dot"></span><span><b>${b.name}</b><span>${b.addr}</span><span class="open">● Açık · ${b.hours}</span></span></button>`).join("");
+  $("#branches").querySelectorAll("button").forEach(x=>x.onclick=()=>{branch=x.dataset.b;save();renderBranches();renderCart()});
+}
+function renderCats(){
+  $("#cats").innerHTML=CATS.map(c=>`<button class="cat" data-c="${c.id}" aria-pressed="${c.id===cat}">${c.name}</button>`).join("");
+  $("#cats").querySelectorAll("button").forEach(x=>x.onclick=()=>{cat=x.dataset.c;renderCats();const el=document.getElementById("sec-"+cat);el&&el.scrollIntoView({behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth",block:"start"})});
+}
+function renderMenu(){
+  $("#menu").innerHTML=CATS.map(c=>{
+    const items=menu.filter(m=>m.c===c.id);
+    return `<section class="sec" id="sec-${c.id}" style="scroll-margin-top:130px"><h3>${c.name} <small>${c.sub}</small></h3><div class="grid">${items.map(card).join("")}</div></section>`;
+  }).join("");
+  $("#menu").querySelectorAll("[data-add]").forEach(b=>b.onclick=()=>add(+b.dataset.add,1));
+  $("#menu").querySelectorAll("[data-dec]").forEach(b=>b.onclick=()=>add(+b.dataset.dec,-1));
+}
+function card(m){
+  const q=cart[m.id]||0;
+  const ctl=!m.on?`<button class="add" disabled>Tükendi</button>`:q?`<div class="qty"><button data-dec="${m.id}" aria-label="Azalt">−</button><span>${q}</span><button data-add="${m.id}" aria-label="Arttır">+</button></div>`:`<button class="add" data-add="${m.id}">Ekle</button>`;
+  return `<article class="card ${m.on?"":"out"}"><div class="pic" style="background:${ARTBG[m.art]};--bgx:${ARTBG[m.art]}">${m.tag&&m.on?`<span class="tag ${m.tg?"g":""}">${m.tag}</span>`:""}${ART[m.art]}</div><div class="body"><b>${m.n}</b><p>${m.d}</p><div class="row"><span class="price">${TL(m.p)}</span>${ctl}</div></div></article>`;
+}
+function add(id,d){
+  const m=byId(id); if(!m||!m.on) return;
+  cart[id]=Math.max(0,(cart[id]||0)+d); if(!cart[id]) delete cart[id];
+  if(d>0) toast(m.n+" sepete eklendi");
+  save();renderMenu();renderCart();
+}
+function totals(){
+  let sub=0,n=0; for(const [id,q] of Object.entries(cart)){const m=byId(+id); if(m){sub+=m.p*q;n+=q}}
+  const fee=mode==="del"&&sub>0&&sub<300?25:0;
+  return {sub,n,fee,total:sub+fee};
+}
+function renderCart(){
+  const b=BRANCHES.find(x=>x.id===branch);
+  $("#cartBranch").textContent=b.name+" · "+(mode==="del"?"adrese teslim":"gel-al");
+  const ids=Object.keys(cart);
+  $("#lines").innerHTML=ids.length?ids.map(id=>{const m=byId(+id);return `<div class="line" style="margin-bottom:8px"><div class="nm"><b>${m.n}</b><span style="color:var(--muted);font-size:13px">${TL(m.p)} × ${cart[id]}</span></div><div class="qty"><button data-dec="${id}" aria-label="Azalt">−</button><span>${cart[id]}</span><button data-add="${id}" aria-label="Arttır">+</button></div></div>`}).join(""):`<div class="empty">Sepetiniz boş. Menüden bir şey ekleyin, mesela sıcak bir menemen.</div>`;
+  $("#lines").querySelectorAll("[data-add]").forEach(x=>x.onclick=()=>add(+x.dataset.add,1));
+  $("#lines").querySelectorAll("[data-dec]").forEach(x=>x.onclick=()=>add(+x.dataset.dec,-1));
+  const t=totals();
+  $("#tot").innerHTML=`<div class="line"><span>Ara toplam</span><span>${TL(t.sub)}</span></div><div class="line"><span>Teslimat ${mode==="del"?"(300 ₺ üstü ücretsiz)":""}</span><span>${t.fee?TL(t.fee):"Ücretsiz"}</span></div><div class="line"><span>Toplam</span><span>${TL(t.total)}</span></div>`;
+  $("#cartN").textContent=t.n;
+  $("#mbarTxt").textContent=t.n?`${t.n} ürün · ${TL(t.total)}`:"Sepet boş";
+  $("#addrWrap").hidden=mode!=="del";
+  updateWA();
+}
+function buildMsg(){
+  const t=totals(),b=BRANCHES.find(x=>x.id===branch);
+  const L=Object.entries(cart).map(([id,q])=>{const m=byId(+id);return `• ${q} × ${m.n} — ${TL(m.p*q)}`});
+  return [`*ÇITIR KAHVALTI · YENİ SİPARİŞ*`,`Şube: ${b.name}`,``,...L,``,`Ara toplam: ${TL(t.sub)}`,`Teslimat: ${t.fee?TL(t.fee):"Ücretsiz"}`,`*Toplam: ${TL(t.total)}*`,``,`Ad: ${$("#fName").value.trim()}`,`Tel: ${$("#fPhone").value.trim()}`,mode==="del"?`Adres: ${$("#fAddr").value.trim()}`:`Teslim: Gel-al`,`Ödeme: ${$("#fPay").value}`,$("#fNote").value.trim()?`Not: ${$("#fNote").value.trim()}`:""].filter((x,i,a)=>x!==""||a[i-1]!=="").join("\n");
+}
+function problems(){
+  const p=[]; if(!Object.keys(cart).length) p.push("sepete ürün ekleyin");
+  if(!$("#fName").value.trim()) p.push("adınızı yazın");
+  if($("#fPhone").value.replace(/\D/g,"").length<10) p.push("telefonunuzu yazın");
+  if(mode==="del"&&$("#fAddr").value.trim().length<8) p.push("adresinizi yazın");
+  return p;
+}
+function updateWA(){
+  const p=problems(),a=$("#waBtn");
+  if(p.length){a.setAttribute("aria-disabled","true");a.href="#"}
+  else{a.removeAttribute("aria-disabled");a.href="https://wa.me/"+PHONE+"?text="+encodeURIComponent(buildMsg())}
+}
+$("#waBtn").addEventListener("click",e=>{
+  const p=problems();
+  if(p.length){e.preventDefault();const er=$("#err");er.textContent="Sipariş için: "+p.join(", ")+".";er.hidden=false;return}
+  $("#err").hidden=true;
+  const t=totals();
+  orders.unshift({no:(orders[0]?.no||1042)+1,b:branch,t:Date.now(),name:$("#fName").value.trim(),items:Object.entries(cart).map(([i,q])=>[+i,q]),mode,pay:$("#fPay").value,addr:$("#fAddr").value.trim(),note:$("#fNote").value.trim(),st:"yeni"});
+  cart={};save();renderMenu();renderCart();renderPanel();
+  toast("Sipariş WhatsApp'ta hazır. Göndermeyi unutmayın.");
+});
+["fName","fPhone","fAddr","fNote","fPay"].forEach(id=>$("#"+id).addEventListener("input",()=>{$("#err").hidden=true;updateWA()}));
+$("#mDel").onclick=()=>{mode="del";$("#mDel").setAttribute("aria-pressed","true");$("#mPick").setAttribute("aria-pressed","false");renderCart()};
+$("#mPick").onclick=()=>{mode="pick";$("#mPick").setAttribute("aria-pressed","true");$("#mDel").setAttribute("aria-pressed","false");renderCart()};
+$("#copyTel").onclick=()=>{const done=()=>toast("Numara kopyalandı");try{navigator.clipboard.writeText("05306788089").then(done,()=>selTel())}catch(e){selTel()}};
+function selTel(){const r=document.createRange();r.selectNodeContents($("#telTxt"));const s=getSelection();s.removeAllRanges();s.addRange(r);toast("Numara seçildi, kopyalayabilirsiniz")}
+const goCart=()=>$("#cart").scrollIntoView({behavior:"smooth",block:"start"});
+$("#topCart").onclick=goCart;$("#mbarGo").onclick=goCart;
+
+/* PANEL */
+let pBranch="hepsi";
+$("#pBranch").innerHTML=`<option value="hepsi">Tüm şubeler</option>`+BRANCHES.map(b=>`<option value="${b.id}">${b.name}</option>`).join("");
+$("#pBranch").onchange=e=>{pBranch=e.target.value;renderPanel()};
+function oTotal(o){return o.items.reduce((s,[i,q])=>s+(byId(i)?.p||0)*q,0)}
+function ago(t){const m=Math.round((Date.now()-t)/60e3);return m<1?"az önce":m<60?m+" dk önce":Math.floor(m/60)+" sa önce"}
+function renderPanel(){
+  const list=orders.filter(o=>pBranch==="hepsi"||o.b===pBranch);
+  const ciro=list.reduce((s,o)=>s+oTotal(o),0);
+  const bek=list.filter(o=>o.st!=="tes").length;
+  $("#stats").innerHTML=`
+    <div class="stat hot"><small>Bekleyen</small><b>${bek}</b></div>
+    <div class="stat"><small>Bugünkü sipariş</small><b>${list.length}</b></div>
+    <div class="stat"><small>Bugünkü ciro</small><b>${TL(ciro)}</b></div>
+    <div class="stat"><small>Ortalama sepet</small><b>${TL(list.length?ciro/list.length:0)}</b></div>`;
+  $("#filt").innerHTML=[{id:"hepsi",name:"Hepsi"},...STATUS].map(s=>`<button data-f="${s.id}" aria-pressed="${filt===s.id}">${s.name}</button>`).join("");
+  $("#filt").querySelectorAll("button").forEach(b=>b.onclick=()=>{filt=b.dataset.f;renderPanel()});
+  const shown=list.filter(o=>filt==="hepsi"||o.st===filt);
+  $("#orders").innerHTML=shown.length?shown.map(o=>{
+    const s=STATUS.find(x=>x.id===o.st),i=STATUS.indexOf(s),nx=STATUS[i+1];
+    const br=BRANCHES.find(b=>b.id===o.b);
+    return `<div class="order" style="--st:${s.c}"><div class="h"><b>#${o.no} · ${o.name} ${o.ex?'<span class="ex">ÖRNEK</span>':""}</b><span class="pill">${s.name}</span></div>
+    <div class="meta">${ago(o.t)} · ${br.name} · ${o.mode==="del"?"Adrese teslim":"Gel-al"} · ${o.pay}${o.addr?" · "+o.addr:""}</div>
+    <div class="items">${o.items.map(([id,q])=>`${q}× ${byId(id)?.n||"?"}`).join(", ")}${o.note?`<br><i style="color:var(--muted)">Not: ${o.note}</i>`:""}</div>
+    <div class="h"><b style="font-size:18px">${TL(oTotal(o))}</b><span class="act">${nx?`<button data-n="${o.no}">${nx.name} →</button>`:""}${o.st!=="yeni"?`<button class="ghost" data-p="${o.no}">Geri al</button>`:""}</span></div></div>`;
+  }).join(""):`<div class="empty">Bu filtrede sipariş yok.</div>`;
+  $("#orders").querySelectorAll("[data-n]").forEach(b=>b.onclick=()=>step(+b.dataset.n,1));
+  $("#orders").querySelectorAll("[data-p]").forEach(b=>b.onclick=()=>step(+b.dataset.p,-1));
+  $("#mlist").innerHTML=CATS.map(c=>`<div style="font-weight:800;font-size:12px;letter-spacing:.06em;color:var(--muted);margin-top:10px">${c.name.toUpperCase()}</div>`+menu.filter(m=>m.c===c.id).map(m=>`<div class="mrow"><span>${m.n}</span><input id="pr${m.id}" type="number" min="0" value="${m.p}" aria-label="${m.n} fiyatı"><button class="sw ${m.on?"":"off"}" data-t="${m.id}">${m.on?"Satışta":"Tükendi"}</button></div>`).join("")).join("");
+  $("#mlist").querySelectorAll("[data-t]").forEach(b=>b.onclick=()=>{const m=byId(+b.dataset.t);m.on=!m.on;if(!m.on)delete cart[m.id];save();renderPanel();renderMenu();renderCart();toast(m.n+(m.on?" satışa açıldı":" tükendi olarak işaretlendi"))});
+  $("#mlist").querySelectorAll("input").forEach(inp=>inp.onchange=()=>{const m=byId(+inp.id.slice(2));m.p=Math.max(0,+inp.value||0);save();renderMenu();renderCart();renderPanel();toast("Fiyat güncellendi")});
+  calc();
+}
+function step(no,d){const o=orders.find(x=>x.no===no);const i=STATUS.findIndex(s=>s.id===o.st);o.st=STATUS[Math.min(3,Math.max(0,i+d))].id;save();renderPanel()}
+function calc(){const v=(+$("#cOrders").value||0)*(+$("#cAvg").value||0)*((+$("#cRate").value||0)/100);$("#cOut").textContent=TL(v)}
+["cOrders","cAvg","cRate"].forEach(id=>$("#"+id).addEventListener("input",calc));
+
+function view(v){
+  const p=v==="panel";
+  $("#customer").hidden=p;$("#panel").hidden=!p;
+  $("#vMusteri").setAttribute("aria-pressed",!p);$("#vPanel").setAttribute("aria-pressed",p);
+  $("#topCart").style.visibility=p?"hidden":"visible";$("#mbar").style.visibility=p?"hidden":"visible";
+  if(location.hash!==(p?"#panel":"")) history.replaceState(null,"",p?"#panel":location.pathname+location.search);
+  window.scrollTo(0,0);
+}
+$("#vMusteri").onclick=()=>view("m");$("#vPanel").onclick=()=>view("panel");
+window.addEventListener("hashchange",()=>view(location.hash==="#panel"?"panel":"m"));
+
+renderBranches();renderCats();renderMenu();renderCart();renderPanel();
+const hd=document.querySelector("header");const setH=()=>document.documentElement.style.setProperty("--hh",hd.offsetHeight+"px");setH();try{new ResizeObserver(setH).observe(hd)}catch(e){addEventListener("resize",setH)}
+if(location.hash==="#panel")view("panel");
+})();
+</script>
